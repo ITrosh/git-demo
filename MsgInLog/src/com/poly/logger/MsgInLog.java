@@ -1,3 +1,5 @@
+package com.poly.logger;
+
 public enum MsgInLog {
 
     SUCCESS("SUCCESS"),
@@ -17,7 +19,11 @@ public enum MsgInLog {
     INVALID_EXPRESSION("INVALID_EXPRESSION"),
     INVALID_CONFIG_DATA("INVALID_CONFIG_DATA");
 
-    public final String msg;
+    public String getMsg() {
+        return msg;
+    }
+
+    private final String msg;
 
     MsgInLog(String errorMsg) {
         this.msg =  errorMsg;
