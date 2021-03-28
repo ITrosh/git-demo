@@ -1,20 +1,16 @@
 package com.poly.parser;
 
-import com.poly.logger.MsgInLog;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.logging.Logger;
+
+import com.poly.logger.MsgInLog;
 
 public class SyntaxParser {
 
     private static final Logger logger = Logger.getLogger(SyntaxParser.class.getName());
 
-    private SyntaxParser() {
-    }
+    private SyntaxParser() { }
 
     static public HashMap<String, String> isValidCfg(String[] arguments) {
         if (arguments.length != 3) {

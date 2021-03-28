@@ -17,13 +17,14 @@ public enum MsgInLog {
     START_PARS("START_PARS"),
     INCORRECT_NUM_OF_ARGUMENTS("INCORRECT_NUM_OF_ARGUMENTS"),
     INVALID_EXPRESSION("INVALID_EXPRESSION"),
-    INVALID_CONFIG_DATA("INVALID_CONFIG_DATA");
+    INVALID_CONFIG_DATA("INVALID_CONFIG_DATA"),
+    TRY_CREATE_WORKER("TRY_CREATE_WORKER");
+
+    private final String msg;
 
     public String getMsg() {
         return msg;
     }
-
-    private final String msg;
 
     MsgInLog(String errorMsg) {
         this.msg =  errorMsg;

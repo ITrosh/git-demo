@@ -1,12 +1,14 @@
 package com.poly.reader;
 
 import com.poly.logger.MsgInLog;
+
 import com.poly.parser.SemanticParser;
 import com.poly.parser.SyntaxParser;
-import java.io.FileInputStream;
-import java.io.IOException;
+
+import java.io.*;
 import java.util.HashMap;
 import java.util.logging.Logger;
+
 import ru.spbstu.pipeline.IExecutable;
 import ru.spbstu.pipeline.IReader;
 import ru.spbstu.pipeline.RC;
@@ -14,29 +16,17 @@ import ru.spbstu.pipeline.RC;
 public class Reader implements IReader {
 
     private final Logger logger;
+    private final ReaderGrammar grammar = new ReaderGrammar();
 
-    private Integer nProcBytes;
-    private int fileSize;
-    private FileInputStream fis;
+    private FileInputStream inputStream;
     private IExecutable consumer;
-    private ReaderGrammar grammar = new ReaderGrammar();
-    private int nReadData = 0;
+    private Integer numOFReadBytes;
+    private Integer bufferSize;
+    private Integer fileSize;
 
     public Reader(Logger logger) {
         this.logger = logger;
-    }
-
-    public static void main(String[] args) {
-        try (FileInputStream file = new FileInputStream(
-                "file.txt")) {
-            Logger logger = Logger.getLogger("reader");
-            IReader reader = new Reader(logger);
-            reader.setConfig("config.txt");
-            reader.setInputStream(file);
-            reader.execute(null);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        this.numOFReadBytes = 0;
     }
 
     @Override
@@ -44,14 +34,14 @@ public class Reader implements IReader {
         if (file == null) {
             return RC.CODE_INVALID_INPUT_STREAM;
         }
-        fis = file;
+        inputStream = file;
         try {
             fileSize = (int) file.getChannel().size();
+            return RC.CODE_SUCCESS;
         } catch (IOException ex) {
             logger.severe(MsgInLog.INVALID_INPUT_STREAM.getMsg());
             return RC.CODE_INVALID_INPUT_STREAM;
         }
-        return RC.CODE_SUCCESS;
     }
 
     @Override
@@ -63,12 +53,13 @@ public class Reader implements IReader {
 
         HashMap<String, String> syntaxValidMap = SyntaxParser.isValidCfg(args);
 
-        nProcBytes = SemanticParser.getInteger(syntaxValidMap, grammar.token(1));
+        bufferSize = SemanticParser.getInteger(syntaxValidMap, grammar.token(1));
 
-        if (nProcBytes == null) {
+        if (bufferSize == null) {
             logger.severe(MsgInLog.INVALID_CONFIG_DATA.getMsg());
             return RC.CODE_CONFIG_SEMANTIC_ERROR;
         }
+
         logger.info(MsgInLog.SUCCESS.name());
         return RC.CODE_SUCCESS;
     }
@@ -105,21 +96,21 @@ public class Reader implements IReader {
 
     private byte[] readFile() {
 
-        if (fis == null) {
+        if (inputStream == null) {
             return null;
         }
 
         try {
             byte[] buffer = null;
 
-            if (nProcBytes < fileSize - nReadData) {
-                buffer = new byte[nProcBytes];
-                fis.read(buffer);
-                nReadData += nProcBytes;
-            } else if (fileSize - nReadData > 0) {
-                buffer = new byte[fileSize - nReadData];
-                fis.read(buffer);
-                nReadData = fileSize;
+            if (bufferSize < fileSize - numOFReadBytes) {
+                buffer = new byte[bufferSize];
+                inputStream.read(buffer);
+                numOFReadBytes += bufferSize;
+            } else if (fileSize - numOFReadBytes > 0) {
+                buffer = new byte[fileSize - numOFReadBytes];
+                inputStream.read(buffer);
+                numOFReadBytes = fileSize;
             }
 
             return buffer;

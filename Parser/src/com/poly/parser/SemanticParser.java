@@ -1,15 +1,15 @@
 package com.poly.parser;
 
-import com.poly.logger.MsgInLog;
 import java.util.HashMap;
 import java.util.logging.Logger;
+
+import com.poly.logger.MsgInLog;
 
 public class SemanticParser {
 
     private static final Logger logger = Logger.getLogger(SemanticParser.class.getName());
 
-    private SemanticParser() {
-    }
+    private SemanticParser() {}
 
     public static Integer getInteger(HashMap<String, String> syntaxMap, String token) {
         if (syntaxMap == null || token == null) {
