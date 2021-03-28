@@ -1,5 +1,13 @@
+package com.poly.writer;
+
 import java.io.*;
+import java.util.HashMap;
 import java.util.logging.Logger;
+
+import com.poly.logger.MsgInLog;
+
+import com.poly.parser.SemanticParser;
+import com.poly.parser.SyntaxParser;
 
 import ru.spbstu.pipeline.IWriter;
 import ru.spbstu.pipeline.IExecutable;
@@ -8,12 +16,9 @@ import ru.spbstu.pipeline.RC;
 public class Writer implements IWriter {
 
     private final Logger logger;
+    private final WriterGrammar grammar = new WriterGrammar();
 
-    FileOutputStream fos;
-    IExecutable consumer;
-    IExecutable producer;
-
-    WriterGrammar grammar = new WriterGrammar();
+    private FileOutputStream outputStream;
 
     public Writer(Logger logger) {
         this.logger = logger;
@@ -24,21 +29,35 @@ public class Writer implements IWriter {
         if (file == null) {
             return RC.CODE_INVALID_OUTPUT_STREAM;
         }
-        fos = file;
+        outputStream = file;
         return RC.CODE_SUCCESS;
     }
 
     @Override
     public RC setConfig(String cfgPath) {
-        logger.info(MsgInLog.SUCCESS.msg);
+        String[] args = new String[3];
+        args[0] = cfgPath;
+        args[1] = grammar.delimiter();
+        args[2] = grammar.token(0);
+
+        HashMap<String, String> syntaxValidMap = SyntaxParser.isValidCfg(args);
+
+        Integer bufferSize = SemanticParser.getInteger(syntaxValidMap, grammar.token(1));
+
+        if (bufferSize == null) {
+            logger.severe(MsgInLog.INVALID_CONFIG_DATA.getMsg());
+            return RC.CODE_CONFIG_SEMANTIC_ERROR;
+        }
+
+        logger.info(MsgInLog.SUCCESS.getMsg());
         return RC.CODE_SUCCESS;
     }
 
     @Override
     public RC setConsumer(IExecutable consumer) {
-        if (consumer == null)
+        if (consumer == null) {
             return RC.CODE_INVALID_ARGUMENT;
-        this.consumer = consumer;
+        }
         return RC.CODE_SUCCESS;
     }
 
@@ -47,21 +66,20 @@ public class Writer implements IWriter {
         if (producer == null) {
             return RC.CODE_INVALID_ARGUMENT;
         }
-        this.producer = producer;
         return RC.CODE_SUCCESS;
     }
 
     @Override
     public RC execute(byte[] inputData){
-        if (inputData == null)
+        if (inputData == null) {
             return RC.CODE_SUCCESS;
-
+        }
         try{
-            fos.write(inputData);
+            outputStream.write(inputData);
             return RC.CODE_SUCCESS;
         } catch (IOException ex) {
-            logger.severe(MsgInLog.FAILED_TO_WRITE.msg);
+            logger.severe(MsgInLog.FAILED_TO_WRITE.getMsg());
+            return RC.CODE_FAILED_TO_WRITE;
         }
-        return RC.CODE_FAILED_TO_WRITE;
     }
 }
